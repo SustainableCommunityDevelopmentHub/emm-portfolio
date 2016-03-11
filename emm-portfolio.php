@@ -3,7 +3,7 @@
 * Plugin Name: emm-portfolio
 * Plugin URI: http://www.emm-gfx.net
 * Description: Enable portfolio features on some themes.
-* Version: 1.0.0
+* Version: 1.0.1
 * Author: Josep Viciana
 * Author URI: http://emm-gfx.net
 * License: GPL2
@@ -24,7 +24,7 @@ function create_post_type() {
 			'has_archive' => true,
 			'rewrite' => array('slug' => 'project'),
 			# Add 'thumbnail' support when the option were enabled.
-			'supports' => array('title', 'editor')
+			'supports' => array('title', 'editor', 'thumbnail')
 		)
 	);
 
