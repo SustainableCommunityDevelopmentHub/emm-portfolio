@@ -3,7 +3,7 @@
 * Plugin Name: emm-portfolio
 * Plugin URI: http://www.emm-gfx.net
 * Description: Enable portfolio features on some themes.
-* Version: 1.0.1
+* Version: 1.1
 * Author: Josep Viciana
 * Author URI: http://emm-gfx.net
 * License: GPL2
@@ -12,6 +12,7 @@ add_action( 'init', 'create_post_type' );
 add_action( 'add_meta_boxes', 'page_meta_boxes' );
 add_action( 'save_post', 'emm_portfolio_save_metadata' );
 add_action( 'pre_get_posts', 'emm_modify_portfolio_posts_per_page' );
+add_action( 'admin_menu' , 'emm_portfolio_settings_menu' );
 
 function create_post_type() {
 	register_post_type( 'emm_portfolio',
@@ -63,7 +64,6 @@ function emm_modify_portfolio_posts_per_page( $query ) {
 	}
 
 }
-
 
 function page_meta_boxes(){
 
@@ -268,4 +268,51 @@ function emm_portfolio_save_metadata( $post_id ) {
 	update_post_meta( $post_id, 'emm_portfolio_link_website', $link_website );
 	update_post_meta( $post_id, 'emm_portfolio_link_download', $link_download );
 }
+
+function emm_portfolio_settings_menu() {
+    add_submenu_page('edit.php?post_type=emm_portfolio', 'EMM Portfolio Settings', 'Portfolio settings', 'edit_posts', basename(__FILE__), 'emm_portfolio_settings');
+}
+
+function emm_portfolio_settings() {
+	if ( !current_user_can( 'manage_options' ) )  {
+		wp_die( 'You do not have sufficient permissions to access this page.' );
+	}
+	?>
+	<div class="wrap">
+
+        <h2>EMM Portfolio Settings</h2>
+
+		<div class="card">
+			<h3><span class="dashicons dashicons-admin-generic"></span> Import projects:</h3>
+			<p>Import old system projects.</p>
+			<p>This tool only moves your projects from old m4c_portfolio custom post type (from Material for Coders template) to the new standalone plugin emm_portfolio.<p>
+			<hr />
+			<div style="padding: 10px;" align="center">
+				<?php global $wpdb; ?>
+
+				<?php if(isset($_GET['import'])): ?>
+					<?php
+					$wpdb->update( $wpdb->posts, array( "post_type" => "emm_portfolio" ), array( "post_type" => "m4c_portfolio" ) );
+					$wpdb->update( $wpdb->postmeta, array( "meta_key" => "emm_portfolio_images_order" ), array( "meta_key" => "_m4c_portfolio_images_order" ) );
+					?>
+					<p><span class="dashicons dashicons-yes"></span> All pending data has been imported.</p>
+					<p><a href="edit.php?post_type=emm_portfolio&page=emm-portfolio.php" class="button">&larr; Return</a></p>
+				<?php else: ?>
+					<?php
+					$projects_count = $wpdb->get_var("SELECT count(DISTINCT ID) FROM $wpdb->posts WHERE post_type = 'm4c_portfolio'");
+					$metadata_count = $wpdb->get_var("SELECT count(DISTINCT post_id) FROM $wpdb->postmeta WHERE meta_key = '_m4c_portfolio_images_order'");
+					?>
+					<?php if($projects_count == 0 && $metadata_count == 0): ?>
+						<p>No data pending to import. Great.</p>
+					<?php else: ?>
+						<p><?php echo intval($projects_count); ?> projects and <?php echo intval($metadata_count); ?> metadata found.</p>
+						<p><a href="edit.php?post_type=emm_portfolio&page=emm-portfolio.php&import" class="button button-primary">Continue &rarr;</a></p>
+					<?php endif; ?>
+				<?php endif; ?>
+			</div>
+		</div>
+	</div>
+	<?php
+}
+
 ?>
